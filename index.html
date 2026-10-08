@@ -1,0 +1,1101 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>くるくるアニメ工房</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Maru+Gothic:wght@500;700;900&display=swap">
+<style>
+/* レイアウト: 左＝カッティングマットの上に紙の円盤（おもちゃそのもの）、右＝タブ式の道具箱。スマホでは1列 */
+:root{
+  --bg:#fff4e0; --panel:#ffffff; --chip:#f5eefc; --chip-2:#fff1d6;
+  --ink:#3d2f4a; --muted:#6e6175; --line:#efdcc3;
+  --sun:#ffc93c; --sun-ink:#3d2a10; --mint:#8fdccf; --mint-ink:#173a34;
+  --magic:#b78bff; --magic-ink:#2a1450;
+  --mat:#2f8a6d; --mat-line:rgba(255,255,255,.24); --mat-line2:rgba(255,255,255,.08);
+  --focus:#5b3fd0; --shadow:#9a6b3f40; --range:#e8862e; --backdrop:#1e192599;
+  --font-display:"Dela Gothic One","Hiragino Maru Gothic ProN","Yu Gothic",system-ui,sans-serif;
+  --font-body:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Yu Gothic",system-ui,sans-serif;
+  --font-emoji:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#1e1925; --panel:#2a2433; --chip:#3a3047; --chip-2:#3d3326;
+  --ink:#f6eee4; --muted:#bfb2c8; --line:#43394f;
+  --sun:#ffc93c; --sun-ink:#2a1f10; --mint:#5cc2b3; --mint-ink:#0f2420;
+  --magic:#a57cf5; --magic-ink:#1a0c35;
+  --mat:#1d5a48; --mat-line:rgba(255,255,255,.16); --mat-line2:rgba(255,255,255,.05);
+  --focus:#c9b8ff; --shadow:#00000070; --range:#ffc93c; --backdrop:#000000aa; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#1e1925; --panel:#2a2433; --chip:#3a3047; --chip-2:#3d3326;
+  --ink:#f6eee4; --muted:#bfb2c8; --line:#43394f;
+  --sun:#ffc93c; --sun-ink:#2a1f10; --mint:#5cc2b3; --mint-ink:#0f2420;
+  --magic:#a57cf5; --magic-ink:#1a0c35;
+  --mat:#1d5a48; --mat-line:rgba(255,255,255,.16); --mat-line2:rgba(255,255,255,.05);
+  --focus:#c9b8ff; --shadow:#00000070; --range:#ffc93c; --backdrop:#000000aa; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-weight:500;font-size:15px;line-height:1.6;padding-inline:16px}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+
+/* ヘッダー */
+.top{max-width:1160px;margin-inline:auto;padding-block:18px 14px;display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap}
+.logo{width:42px;height:42px;border-radius:50%;flex:none;background:
+  radial-gradient(circle,#fff 0 5px,#d9a463 5px 7px,transparent 7px),
+  radial-gradient(circle,transparent 15px,#c88a48 15px 21px),
+  conic-gradient(#ff4f7b 0 12.5%,#ffcf2e 0 25%,#3cc66a 0 37.5%,#2fa8ff 0 50%,#7a5cff 0 62.5%,#ff8a2a 0 75%,#ff5ac8 0 87.5%,#8fdccf 0);
+  box-shadow:0 4px 10px var(--shadow);animation:spin 5s linear infinite}
+@keyframes spin{to{transform:rotate(1turn)}}
+h1{margin:0;font-family:var(--font-display);font-weight:400;font-size:clamp(24px,5vw,34px);letter-spacing:.02em;line-height:1.2}
+.tagline{margin:0;color:var(--muted);font-weight:700}
+
+.app{max-width:1160px;margin-inline:auto;display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:20px;padding-bottom:20px;align-items:start}
+
+/* ステージ */
+.stage{background:var(--panel);border-radius:28px;padding:16px;display:grid;gap:12px;min-width:0}
+.mat{display:grid;place-items:center;padding:clamp(12px,3.5vw,32px);border-radius:20px;background-color:var(--mat);
+  background-image:linear-gradient(var(--mat-line) 1px,transparent 1px),linear-gradient(90deg,var(--mat-line) 1px,transparent 1px),
+  linear-gradient(var(--mat-line2) 1px,transparent 1px),linear-gradient(90deg,var(--mat-line2) 1px,transparent 1px);
+  background-size:100px 100px,100px 100px,20px 20px,20px 20px;background-position:-1px -1px}
+canvas#disk{display:block;width:min(100%,600px);aspect-ratio:1;height:auto;max-width:100%;touch-action:none;border-radius:50%;
+  box-shadow:0 22px 30px rgba(0,0,0,.35),0 5px 8px rgba(0,0,0,.25);cursor:crosshair;-webkit-user-select:none;user-select:none}
+.status{display:flex;gap:8px;align-items:stretch}
+.bubble{flex:1;background:var(--chip-2);border-radius:16px;padding:9px 14px;font-weight:700;min-width:0}
+.meter{flex:none;display:grid;place-items:center;background:var(--chip);border-radius:16px;padding:6px 12px;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--muted);min-width:7.5em;text-align:center;line-height:1.3;white-space:pre-line}
+.meter.live{color:var(--ink)}
+.bigrow{display:grid;grid-template-columns:2fr 1.3fr auto;gap:10px}
+.bigrow .btn{font-size:17px;min-height:54px}
+.tip{margin:0;font-size:13px;color:var(--muted);text-align:center}
+
+/* ボタン類 */
+.btn{border:0;border-radius:14px;background:var(--chip);padding:8px 10px;min-height:44px;font-weight:700;cursor:pointer;transition:transform .08s,background-color .15s;white-space:nowrap}
+.btn:active{transform:scale(.96)}
+.btn[aria-pressed="true"]{background:var(--mint);color:var(--mint-ink)}
+.btn.primary{background:var(--sun);color:var(--sun-ink)}
+.btn.wide{width:100%}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn small{display:block;font-size:11px;font-weight:700;opacity:.8;line-height:1.2}
+
+/* 道具箱 */
+.panel{background:var(--panel);border-radius:24px;padding:10px;display:grid;gap:10px;min-width:0}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.tab{border:0;border-radius:14px;background:transparent;padding:6px 2px;cursor:pointer;font-weight:900;font-size:13px;color:var(--muted);display:grid;justify-items:center;gap:0;line-height:1.3}
+.tab .ic{font-size:22px;font-family:var(--font-emoji)}
+.tab[aria-selected="true"]{background:var(--sun);color:var(--sun-ink)}
+.tabpanel{display:grid;gap:14px;padding:6px 6px 8px}
+.block{display:grid;gap:8px;min-width:0}
+.block h2{margin:0;font-size:13px;font-weight:900;letter-spacing:.08em;color:var(--muted)}
+.grid{display:grid;gap:6px}
+.g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}.g5{grid-template-columns:repeat(5,1fr)}
+.g4 .btn,.g5 .btn{padding-inline:4px;font-size:13px}
+.swatches{display:grid;grid-template-columns:repeat(9,1fr);gap:6px}
+.swatch{aspect-ratio:1;border-radius:50%;border:3px solid var(--panel);box-shadow:0 0 0 2px var(--line);cursor:pointer;padding:0;min-width:0}
+.swatch[aria-pressed="true"]{box-shadow:0 0 0 3px var(--ink)}
+.swatch.custom{position:relative;background:conic-gradient(#ff5a5a,#ffd23c,#5bd36b,#4bb7ff,#9b6bff,#ff5ac8,#ff5a5a)}
+.swatch.custom.on{box-shadow:0 0 0 3px var(--ink)}
+.swatch.custom input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:0;padding:0}
+.stamps .btn{font-size:22px;padding:2px;font-family:var(--font-emoji)}
+.field{display:grid;gap:0}
+.field .row{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-weight:700}
+.field output{font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px}
+input[type=range]{width:100%;accent-color:var(--range);height:28px}
+select{border:2px solid var(--line);border-radius:12px;background:var(--panel);padding:6px 10px;font-weight:700}
+.check{display:flex;align-items:center;gap:8px;font-weight:700;cursor:pointer}
+.check input{width:20px;height:20px;accent-color:var(--range);flex:none}
+.inline{display:flex;align-items:center;justify-content:space-between;gap:8px;font-weight:700}
+.hint{font-size:13px;color:var(--muted);margin:0}
+
+.magic{background:var(--chip);border-radius:18px;padding:10px;display:grid;gap:8px}
+.magic.on{background:color-mix(in srgb,var(--magic) 22%,var(--panel))}
+.magic-toggle{display:flex;align-items:center;justify-content:space-between;gap:8px;font-weight:900}
+.switch{border:0;border-radius:999px;width:58px;height:32px;background:var(--line);position:relative;cursor:pointer;flex:none;padding:0}
+.switch::after{content:"";position:absolute;top:4px;left:4px;width:24px;height:24px;border-radius:50%;background:var(--panel);box-shadow:0 1px 3px #0003;transition:transform .15s}
+.switch[aria-pressed="true"]{background:var(--magic)}
+.switch[aria-pressed="true"]::after{transform:translateX(26px)}
+.motions .btn[aria-pressed="true"]{background:var(--magic);color:var(--magic-ink)}
+
+.idea{background:var(--chip-2);border-radius:18px;padding:14px;display:grid;gap:8px;text-align:center}
+.idea .label{font-size:12px;font-weight:900;letter-spacing:.1em;color:var(--muted)}
+.idea .text{font-family:var(--font-display);font-weight:400;font-size:20px;line-height:1.4;text-wrap:balance;min-height:2.8em;display:grid;place-items:center}
+.idea .hint{text-align:center}
+
+.gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.gitem{position:relative}
+.gthumb{display:block;width:100%;aspect-ratio:1;border-radius:50%;border:5px solid #c88a48;background:#fbf8f2;padding:0;cursor:pointer;overflow:hidden}
+.gthumb img{width:100%;height:100%;display:block}
+.gdel{position:absolute;top:-4px;right:-4px;border:0;border-radius:999px;min-width:28px;height:28px;padding:0 6px;background:var(--ink);color:var(--panel);font-weight:900;cursor:pointer;font-size:13px}
+
+footer{max-width:1160px;margin-inline:auto;padding-block:4px 28px;color:var(--muted);font-size:13px;text-align:center}
+
+dialog{border:0;border-radius:24px;padding:18px;background:var(--panel);color:var(--ink);width:min(94vw,640px);box-shadow:0 20px 50px var(--shadow)}
+dialog::backdrop{background:var(--backdrop)}
+dialog h2{margin:0 0 10px;font-family:var(--font-display);font-weight:400;font-size:22px;text-align:center}
+.exgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.exgrid figure{margin:0;display:grid;gap:8px;justify-items:center}
+.exgrid img{width:100%;max-width:280px;height:auto;display:block;background:var(--mat);border-radius:18px;padding:10px}
+.exgrid figcaption{font-weight:700}
+dialog .hint{text-align:center;margin:12px 0}
+
+@media (max-width:860px){.app{grid-template-columns:1fr}}
+@media (max-width:420px){.bigrow{grid-template-columns:1.6fr 1.2fr auto}.bigrow .btn{font-size:15px}.tab{font-size:12px}}
+@media (prefers-reduced-motion:reduce){.logo{animation:none}.btn{transition:none}.btn:active{transform:none}.switch::after{transition:none}}
+</style>
+</head><body>
+
+<header class="top">
+  <span class="logo" aria-hidden="true"></span>
+  <h1>くるくるアニメ工房</h1>
+  <p class="tagline">かいて、まわして、うごかそう！</p>
+</header>
+
+<main class="app">
+  <section class="stage" aria-label="円盤">
+    <div class="mat">
+      <canvas id="disk" width="700" height="700" role="img" aria-label="絵をかける紙の円盤。まわすとアニメになる"></canvas>
+    </div>
+    <div class="status">
+      <div class="bubble" id="message" aria-live="polite">おてほんのおさかなが のっているよ。「まわす」をおしてみよう！</div>
+      <div class="meter" id="meter" aria-hidden="true">とまってる</div>
+    </div>
+    <div class="bigrow">
+      <button class="btn primary" id="play" type="button">▶ まわす</button>
+      <button class="btn" id="reverse" type="button" aria-pressed="false">↺ ぎゃく</button>
+      <button class="btn" id="sound" type="button" aria-pressed="true" aria-label="おと">🔊</button>
+    </div>
+    <p class="tip">✋ 円盤のふち（茶色いところ）をつかんで はじいても まわるよ</p>
+  </section>
+
+  <aside class="panel">
+    <div class="tabs" role="tablist" aria-label="道具箱">
+      <button class="tab" role="tab" id="t-draw" aria-controls="p-draw" aria-selected="true" type="button"><span class="ic">✏️</span>かく</button>
+      <button class="tab" role="tab" id="t-spin" aria-controls="p-spin" aria-selected="false" tabindex="-1" type="button"><span class="ic">🌀</span>まわす</button>
+      <button class="tab" role="tab" id="t-idea" aria-controls="p-idea" aria-selected="false" tabindex="-1" type="button"><span class="ic">💡</span>アイデア</button>
+      <button class="tab" role="tab" id="t-save" aria-controls="p-save" aria-selected="false" tabindex="-1" type="button"><span class="ic">💾</span>ほぞん</button>
+    </div>
+
+    <!-- かく -->
+    <div class="tabpanel" role="tabpanel" id="p-draw" aria-labelledby="t-draw">
+      <div class="block">
+        <div class="grid g4" role="group" aria-label="どうぐ">
+          <button class="btn" type="button" data-tool="draw" aria-pressed="true">✏️ ペン</button>
+          <button class="btn" type="button" data-tool="erase" aria-pressed="false">🧽 けす</button>
+          <button class="btn" type="button" data-tool="stamp" aria-pressed="false">⭐ スタンプ</button>
+          <button class="btn" type="button" data-tool="hand" aria-pressed="false">✋ まわす</button>
+        </div>
+      </div>
+      <div class="block" id="brushBlock">
+        <h2>ふで</h2>
+        <div class="grid g5" role="group" aria-label="ふで">
+          <button class="btn" type="button" data-brush="pen" aria-pressed="true">🖊️<small>ふつう</small></button>
+          <button class="btn" type="button" data-brush="crayon" aria-pressed="false">🖍️<small>クレヨン</small></button>
+          <button class="btn" type="button" data-brush="neon" aria-pressed="false">💡<small>ネオン</small></button>
+          <button class="btn" type="button" data-brush="rainbow" aria-pressed="false">🌈<small>にじ</small></button>
+          <button class="btn" type="button" data-brush="dots" aria-pressed="false">⚪<small>てんてん</small></button>
+        </div>
+      </div>
+      <div class="block" id="stampBlock" hidden>
+        <h2>スタンプ</h2>
+        <div class="grid g5 stamps" role="group" aria-label="スタンプ">
+          <button class="btn" type="button" data-stamp="⭐" aria-pressed="true">⭐</button>
+          <button class="btn" type="button" data-stamp="❤️" aria-pressed="false">❤️</button>
+          <button class="btn" type="button" data-stamp="🌸" aria-pressed="false">🌸</button>
+          <button class="btn" type="button" data-stamp="🐟" aria-pressed="false">🐟</button>
+          <button class="btn" type="button" data-stamp="🐱" aria-pressed="false">🐱</button>
+          <button class="btn" type="button" data-stamp="🦋" aria-pressed="false">🦋</button>
+          <button class="btn" type="button" data-stamp="🚀" aria-pressed="false">🚀</button>
+          <button class="btn" type="button" data-stamp="⚽" aria-pressed="false">⚽</button>
+          <button class="btn" type="button" data-stamp="🐸" aria-pressed="false">🐸</button>
+          <button class="btn" type="button" data-stamp="👻" aria-pressed="false">👻</button>
+        </div>
+      </div>
+      <div class="block">
+        <h2>いろ</h2>
+        <div class="swatches" role="group" aria-label="ペンの色">
+          <button class="swatch" type="button" data-color="#ff4f7b" style="background:#ff4f7b" aria-label="ピンク" aria-pressed="true"></button>
+          <button class="swatch" type="button" data-color="#ff8a2a" style="background:#ff8a2a" aria-label="オレンジ" aria-pressed="false"></button>
+          <button class="swatch" type="button" data-color="#ffcf2e" style="background:#ffcf2e" aria-label="きいろ" aria-pressed="false"></button>
+          <button class="swatch" type="button" data-color="#3cc66a" style="background:#3cc66a" aria-label="みどり" aria-pressed="false"></button>
+          <button class="swatch" type="button" data-color="#2fa8ff" style="background:#2fa8ff" aria-label="みずいろ" aria-pressed="false"></button>
+          <button class="swatch" type="button" data-color="#7a5cff" style="background:#7a5cff" aria-label="むらさき" aria-pressed="false"></button>
+          <button class="swatch" type="button" data-color="#8a5a33" style="background:#8a5a33" aria-label="ちゃいろ" aria-pressed="false"></button>
+          <button class="swatch" type="button" data-color="#2b2433" style="background:#2b2433" aria-label="くろ" aria-pressed="false"></button>
+          <label class="swatch custom" title="すきな色"><input id="color" type="color" value="#ff4f7b" aria-label="すきな色をえらぶ"></label>
+        </div>
+        <div class="field">
+          <div class="row"><label for="size">ふとさ・大きさ</label><output id="sizeText" for="size">9</output></div>
+          <input id="size" type="range" min="2" max="32" value="9">
+        </div>
+      </div>
+      <div class="magic" id="magicBox">
+        <div class="magic-toggle">
+          <span>🪄 まほうペン</span>
+          <button class="switch" id="magic" type="button" aria-pressed="false" aria-label="まほうペン"></button>
+        </div>
+        <p class="hint">1コマにかくだけで、ぜんぶのコマに すこしずつ うごかして コピーするよ。点線の円の上にかくと うまくいくよ。</p>
+        <div class="grid g4 motions" role="group" aria-label="まほうのうごき">
+          <button class="btn" type="button" data-motion="jump" aria-pressed="true">ぴょん</button>
+          <button class="btn" type="button" data-motion="spin" aria-pressed="false">くるっ</button>
+          <button class="btn" type="button" data-motion="pulse" aria-pressed="false">ドキドキ</button>
+          <button class="btn" type="button" data-motion="sway" aria-pressed="false">ゆらゆら</button>
+          <button class="btn" type="button" data-motion="grow" aria-pressed="false">ぐんぐん</button>
+          <button class="btn" type="button" data-motion="fly" aria-pressed="false">びゅーん</button>
+          <button class="btn" type="button" data-motion="fade" aria-pressed="false">ちいさく</button>
+          <button class="btn" type="button" data-motion="same" aria-pressed="false">おなじ</button>
+        </div>
+      </div>
+      <div class="grid g2">
+        <button class="btn" id="undo" type="button" disabled>↶ もどす</button>
+        <button class="btn" id="clear" type="button">🗑️ ぜんぶけす</button>
+      </div>
+    </div>
+
+    <!-- まわす -->
+    <div class="tabpanel" role="tabpanel" id="p-spin" aria-labelledby="t-spin" hidden>
+      <div class="block">
+        <h2>見えかた</h2>
+        <div class="grid g2" role="group" aria-label="見えかた">
+          <button class="btn" type="button" data-mode="anime" aria-pressed="true">🎞️ アニメ<small>1コマずつ カタカタ</small></button>
+          <button class="btn" type="button" data-mode="smooth" aria-pressed="false">🌀 ふつう<small>なめらかに ぐるぐる</small></button>
+        </div>
+      </div>
+      <div class="field">
+        <div class="row"><label for="speed">モーターのはやさ</label><output id="speedText" for="speed">1.5 回/秒</output></div>
+        <input id="speed" type="range" min="0.2" max="4" step="0.1" value="1.5">
+      </div>
+      <div class="inline">
+        <label for="frames">コマのかず</label>
+        <select id="frames"><option value="6">6コマ</option><option value="8" selected>8コマ</option><option value="10">10コマ</option><option value="12">12コマ</option></select>
+      </div>
+      <div class="block">
+        <label class="check"><input id="guide" type="checkbox" checked> ガイド線と番号</label>
+        <label class="check"><input id="onion" type="checkbox" checked> まえのコマを うすく青で見せる</label>
+        <label class="check"><input id="peek" type="checkbox"> のぞき窓（1コマだけ見る）</label>
+      </div>
+      <p class="hint">このおもちゃは「フェナキストスコープ」という、1830年代に生まれたアニメのごせんぞと同じしくみ。すこしずつちがう絵を、1コマずつ同じ場所に出すと、目には動いて見えるんだ。</p>
+    </div>
+
+    <!-- アイデア -->
+    <div class="tabpanel" role="tabpanel" id="p-idea" aria-labelledby="t-idea" hidden>
+      <div class="idea">
+        <div class="label">きょうの おだい</div>
+        <div class="text" id="ideaText" aria-live="polite">たまごが われて ひよこが でてくる</div>
+        <p class="hint" id="ideaHint">1コマずつ ひびを ふやしていこう</p>
+        <div class="grid g2">
+          <button class="btn primary" id="dice" type="button">🎲 サイコロ</button>
+          <button class="btn" id="ideaMagic" type="button" hidden>🪄 まほうでかく</button>
+        </div>
+      </div>
+      <div class="block">
+        <h2>おてほん（おすと すぐ まわるよ）</h2>
+        <div class="grid g2">
+          <button class="btn" type="button" data-sample="fish">🐟 およぐ魚</button>
+          <button class="btn" type="button" data-sample="ball">⚽ はねるボール</button>
+          <button class="btn" type="button" data-sample="walker">🚶 あるく人</button>
+          <button class="btn" type="button" data-sample="bird">🐦 とぶ鳥</button>
+          <button class="btn" type="button" data-sample="face">😊 わらう顔</button>
+          <button class="btn" type="button" data-sample="firework">🎆 はなび</button>
+          <button class="btn" type="button" data-sample="flower">🌸 ひらく花</button>
+          <button class="btn" type="button" data-sample="star">⭐ まわる星</button>
+        </div>
+      </div>
+      <p class="hint">おてほんを まねして、色や形を かえてみよう。じぶんだけの アニメに なるよ。</p>
+    </div>
+
+    <!-- ほぞん -->
+    <div class="tabpanel" role="tabpanel" id="p-save" aria-labelledby="t-save" hidden>
+      <div class="block">
+        <h2>つくったものを とっておく</h2>
+        <button class="btn primary wide" id="gifBtn" type="button">🎞️ GIFアニメを つくる</button>
+        <button class="btn wide" id="pngBtn" type="button">📷 円盤を 画像にする</button>
+      </div>
+      <div class="block">
+        <div class="inline"><h2>わたしの作品</h2><button class="btn" id="keep" type="button">💾 しまう</button></div>
+        <div class="gallery" id="gallery"></div>
+        <p class="hint">この ブラウザの中に 8こまで しまえるよ。</p>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<footer>スペースキーで まわす／とめる ・ Ctrl+Z で もどす ・ 点滅はしないので 目にやさしいよ</footer>
+
+<dialog id="exportDialog" aria-labelledby="exTitle">
+  <h2 id="exTitle">できあがり！</h2>
+  <div class="exgrid" id="exGrid"></div>
+  <p class="hint">「ほぞん」がつかえない時は、画像を長おし（パソコンは右クリック）して ほぞんしてね</p>
+  <form method="dialog"><button class="btn wide" type="submit">とじる</button></form>
+</dialog>
+
+<script>
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const $$ = s => [...document.querySelectorAll(s)];
+  const TAU = Math.PI * 2;
+  const N = 700, C = 350, R = 340, DRAW_R = 312, RING = 210;
+  const EMOJI = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+  const GUIDE_FONT = '700 19px "Zen Maru Gothic","Hiragino Maru Gothic ProN",sans-serif';
+  const STORE = 'kurukuru-anime-v3', GALLERY = 'kurukuru-gallery-v1';
+
+  /* ================= キャンバス ================= */
+  const c = $('disk'), ctx = c.getContext('2d');
+  const SCALE = Math.min(2, window.devicePixelRatio || 1);
+  c.width = c.height = Math.round(N * SCALE);
+  const mk = () => { const k = document.createElement('canvas'); k.width = k.height = N; return k; };
+  const paint = mk(), p = paint.getContext('2d');           // 子どもの絵
+  const disc = mk(), dctx = disc.getContext('2d');          // 紙＋絵＋ふち（回転させる1枚）
+  const onionC = mk(), octx = onionC.getContext('2d');
+  const tex = mk();                                         // 紙の質感
+
+  (function makePaper() {
+    const g = tex.getContext('2d'), img = g.createImageData(N, N), d = img.data;
+    for (let i = 0; i < d.length; i += 4) { const v = 247 + Math.random() * 8; d[i] = v; d[i + 1] = v - 2; d[i + 2] = v - 7; d[i + 3] = 255; }
+    g.putImageData(img, 0, 0);
+    g.strokeStyle = '#8a6a3a'; g.lineWidth = .8; g.globalAlpha = .06;
+    for (let i = 0; i < 1100; i++) { const x = Math.random() * N, y = Math.random() * N, a = Math.random() * TAU, l = 4 + Math.random() * 16; g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a) * l, y + Math.sin(a) * l); g.stroke(); }
+  })();
+
+  /* ================= 状態 ================= */
+  const state = { tool:'draw', brush:'pen', color:'#ff4f7b', size:9, stamp:'⭐', magic:false, motion:'jump',
+    playing:false, dir:1, speed:1.5, mode:'anime', frames:8, guide:true, onion:true, peek:false, sound:true };
+  let angle = 0, vel = 0, shown = 0, lastIdx = 0, lastTime = 0;
+  let drawing = false, last = null, pointer = null, stroke = null, grab = null;
+  let discDirty = true, discKey = '';
+  const history = [];
+  const step = () => TAU / state.frames;
+  const say = t => { $('message').textContent = t; };
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ================= 音（WebAudio、さわってから鳴る） ================= */
+  let ac = null, noise = null, whirGain = null, whirFilter = null, lastTick = 0;
+  function ensureAudio() {
+    if (!state.sound) return;
+    if (!ac) {
+      try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return; }
+      noise = ac.createBuffer(1, ac.sampleRate, ac.sampleRate);
+      const ch = noise.getChannelData(0); for (let i = 0; i < ch.length; i++) ch[i] = Math.random() * 2 - 1;
+      const src = ac.createBufferSource(); src.buffer = noise; src.loop = true;
+      whirFilter = ac.createBiquadFilter(); whirFilter.type = 'bandpass'; whirFilter.Q.value = .8; whirFilter.frequency.value = 300;
+      whirGain = ac.createGain(); whirGain.gain.value = 0;
+      src.connect(whirFilter).connect(whirGain).connect(ac.destination); src.start();
+    }
+    if (ac.state === 'suspended') ac.resume();
+  }
+  function tick() { // 映写機のようなカタッという音
+    if (!ac || !state.sound) return;
+    const now = performance.now(); if (now - lastTick < 24) return; lastTick = now;
+    const t = ac.currentTime, s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+    s.buffer = noise; f.type = 'highpass'; f.frequency.value = 1800;
+    g.gain.setValueAtTime(.22, t); g.gain.exponentialRampToValueAtTime(.001, t + .035);
+    s.connect(f).connect(g).connect(ac.destination); s.start(t, Math.random() * .5, .05);
+  }
+  function blip(f0 = 520, f1 = 1040, dur = .09, vol = .14) {
+    if (!ac || !state.sound) return;
+    const t = ac.currentTime, o = ac.createOscillator(), g = ac.createGain();
+    o.type = 'sine'; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur + .05);
+    o.connect(g).connect(ac.destination); o.start(t); o.stop(t + dur + .06);
+  }
+  document.addEventListener('pointerdown', ensureAudio, { capture: true });
+  document.addEventListener('keydown', ensureAudio, { capture: true });
+
+  /* ================= 座標 ================= */
+  function screenPt(cx, cy) { const b = c.getBoundingClientRect(); return { x: (cx - b.left) * N / b.width, y: (cy - b.top) * N / b.height }; }
+  function toPaint(cx, cy) {
+    const s = screenPt(cx, cy), x = s.x - C, y = s.y - C, co = Math.cos(-shown), si = Math.sin(-shown);
+    return { x: C + x * co - y * si, y: C + x * si + y * co };
+  }
+  function cellAt(v) {
+    const n = state.frames, st = step();
+    let k = Math.round((-Math.PI / 2 - Math.atan2(v.y - C, v.x - C)) / st); k = ((k % n) + n) % n;
+    const a = -Math.PI / 2 - k * st;
+    return { a, cx: C + RING * Math.cos(a), cy: C + RING * Math.sin(a) };
+  }
+  const clipDisk = g => { g.beginPath(); g.arc(C, C, DRAW_R, 0, TAU); g.clip(); };
+
+  /* ================= まほうペン ================= */
+  // 各コマのローカル座標: -y が円盤の外がわ（見る人にとって「上」）。t=0 は かいたままの形
+  const MOTIONS = {
+    same:  () => {},
+    jump:  (g, t) => g.translate(0, -70 * Math.sin(Math.PI * t)),
+    spin:  (g, t) => g.rotate(t * TAU),
+    pulse: (g, t) => { const s = 1 + .4 * Math.sin(t * TAU); g.scale(s, s); },
+    sway:  (g, t) => { g.translate(22 * Math.sin(t * TAU), 0); g.rotate(.3 * Math.sin(t * TAU)); },
+    grow:  (g, t) => { const s = 1 + 1.5 * t; g.scale(s, s); },
+    fly:   (g, t) => { g.translate(0, -120 * t); g.scale(1 - .4 * t, 1 - .4 * t); },
+    fade:  (g, t) => { const s = 1 - .85 * t; g.scale(s, s); }
+  };
+  const MOTION_NAME = { same:'おなじ', jump:'ぴょん', spin:'くるっ', pulse:'ドキドキ', sway:'ゆらゆら', grow:'ぐんぐん', fly:'びゅーん', fade:'ちいさく' };
+  function op(fn, cell) {
+    p.save(); clipDisk(p);
+    if (state.magic && cell) {
+      const n = state.frames, st = step(), rot = cell.a + Math.PI / 2;
+      for (let j = 0; j < n; j++) {
+        p.save();
+        p.translate(C, C); p.rotate(-j * st); p.translate(-C, -C);     // j コマ先へ
+        p.translate(cell.cx, cell.cy); p.rotate(rot); MOTIONS[state.motion](p, j / n); p.rotate(-rot); p.translate(-cell.cx, -cell.cy);
+        fn(p); p.restore();
+      }
+    } else fn(p);
+    p.restore(); discDirty = true;
+  }
+
+  /* ================= ふで ================= */
+  function line(g, a, b, col) { g.strokeStyle = col; g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.stroke(); }
+  function crayon(g, a, b, d, size, color) {
+    g.fillStyle = color;
+    const steps = Math.max(1, Math.ceil(d / 2.5)), count = Math.ceil(size * 1.3) + 3, r = size / 2 + 1;
+    for (let i = 0; i <= steps; i++) {
+      const f = i / steps, x = a.x + (b.x - a.x) * f, y = a.y + (b.y - a.y) * f;
+      for (let j = 0; j < count; j++) { const an = Math.random() * TAU, rr = Math.sqrt(Math.random()) * r; g.globalAlpha = .25 + Math.random() * .5; g.fillRect(x + Math.cos(an) * rr, y + Math.sin(an) * rr, 1.8, 1.8); }
+    }
+    g.globalAlpha = 1;
+  }
+  function seg(a, b) {
+    const d = Math.hypot(b.x - a.x, b.y - a.y), s = stroke, tool = state.tool, brush = state.brush, size = state.size, color = state.color;
+    let dots = null; const hue = (s.dist * .9) % 360;
+    if (tool === 'draw' && brush === 'dots') {
+      dots = []; const sp = size * 1.9 + 6;
+      while (s.nextDot <= s.dist + d) { const f = d ? (s.nextDot - s.dist) / d : 0; dots.push({ x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f }); s.nextDot += sp; }
+    }
+    s.dist += d;
+    op(g => {
+      g.lineCap = 'round'; g.lineJoin = 'round';
+      if (tool === 'erase') { g.globalCompositeOperation = 'destination-out'; g.lineWidth = size * 2.5 + 12; line(g, a, b, '#000'); return; }
+      switch (brush) {
+        case 'crayon': crayon(g, a, b, d, size, color); break;
+        case 'neon': g.shadowColor = color; g.shadowBlur = size * 1.5 + 8; g.lineWidth = size; line(g, a, b, color); g.shadowBlur = 0; g.lineWidth = Math.max(1.5, size * .35); line(g, a, b, 'rgba(255,255,255,.9)'); break;
+        case 'rainbow': g.lineWidth = size; line(g, a, b, `hsl(${hue},90%,55%)`); break;
+        case 'dots': g.fillStyle = color; for (const q of dots) { g.beginPath(); g.arc(q.x, q.y, size * .65 + 1.5, 0, TAU); g.fill(); } break;
+        default: g.lineWidth = size; line(g, a, b, color);
+      }
+    }, s.cell);
+  }
+  function emoji(g, ch, size) { g.font = `${Math.round(size)}px ${EMOJI}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(ch, 0, 0); }
+  function stampAt(v) {
+    const rot = -shown;
+    op(g => { g.translate(v.x, v.y); g.rotate(rot); emoji(g, state.stamp, 26 + state.size * 3); }, cellAt(v));
+  }
+
+  /* ================= もどす・自動保存 ================= */
+  function snapshot() { history.push({ img: p.getImageData(0, 0, N, N), frames: state.frames }); if (history.length > 20) history.shift(); syncUndo(); }
+  function syncUndo() { $('undo').disabled = !history.length; }
+  function undo() {
+    if (!history.length) return;
+    const h = history.pop(); if (h.frames !== state.frames) setFrames(h.frames);
+    p.putImageData(h.img, 0, 0); discDirty = true; syncUndo(); persist(); say('ひとつ もどしたよ'); }
+  let saveTimer;
+  function persist() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => { try { localStorage.setItem(STORE, JSON.stringify({ png: paint.toDataURL('image/png'), frames: state.frames })); } catch (e) {} }, 600);
+  }
+  function loadPaintURL(url) {
+    return new Promise(res => {
+      const img = new Image();
+      img.onload = () => { p.clearRect(0, 0, N, N); p.drawImage(img, 0, 0); discDirty = true; persist(); res(true); };
+      img.onerror = () => res(false);
+      img.src = url;
+    });
+  }
+
+  /* ================= おてほん ================= */
+  function starShape(g, r) {
+    g.beginPath();
+    for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * .45 : r; g.lineTo(Math.cos(a) * rr, Math.sin(a) * rr); }
+    g.closePath(); g.fillStyle = '#ffcf2e'; g.fill(); g.lineWidth = 5; g.lineJoin = 'round'; g.strokeStyle = '#f08a1c'; g.stroke();
+  }
+  function seg2(g, x1, y1, x2, y2) { g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke(); }
+  const SAMPLES = {
+    fish(g, t) {
+      g.save(); g.translate(0, Math.sin(t * TAU) * 18); g.rotate(Math.cos(t * TAU) * .3); emoji(g, '🐟', 66); g.restore();
+      g.strokeStyle = '#5ab8ff'; g.lineWidth = 3;
+      for (let j = 0; j < 2; j++) { const u = (t + j * .5) % 1; g.beginPath(); g.arc(34 + 6 * Math.sin(u * TAU * 2), -26 - u * 55, 4 + u * 5, 0, TAU); g.stroke(); }
+    },
+    ball(g, t) {
+      const h = 4 * t * (1 - t), gy = 70;
+      g.strokeStyle = '#b48a5a'; g.lineWidth = 5; g.lineCap = 'round'; seg2(g, -40, gy, 40, gy);
+      g.fillStyle = 'rgba(80,60,40,.18)'; g.beginPath(); g.ellipse(0, gy - 3, 24 - h * 12, 5, 0, 0, TAU); g.fill();
+      g.save(); g.translate(0, gy - 26 - h * 110);
+      if (h < .15) { g.translate(0, 26); g.scale(1.25, .78); g.translate(0, -26); }
+      emoji(g, '⚽', 50); g.restore();
+    },
+    walker(g, t) {
+      const ph = t * TAU, sw = Math.sin(ph), bob = -Math.abs(Math.cos(ph)) * 5;
+      g.lineCap = 'round'; g.lineJoin = 'round';
+      g.strokeStyle = '#b48a5a'; g.lineWidth = 5; seg2(g, -45, 72, 45, 72);
+      const hip = { x: 0, y: 22 + bob }, sh = { x: 0, y: -14 + bob };
+      const limb = (o, th, len, bend) => { const k = { x: o.x + Math.sin(th) * len, y: o.y + Math.cos(th) * len }; const e = { x: k.x + Math.sin(th + bend) * len, y: k.y + Math.cos(th + bend) * len }; g.beginPath(); g.moveTo(o.x, o.y); g.lineTo(k.x, k.y); g.lineTo(e.x, e.y); g.stroke(); };
+      g.lineWidth = 7;
+      g.strokeStyle = '#9a8ca6'; limb(hip, -sw * .55, 25, Math.max(0, sw) * .5); limb(sh, sw * .6, 17, -.5);
+      g.strokeStyle = '#3d2f4a'; seg2(g, hip.x, hip.y, sh.x, sh.y - 8);
+      limb(hip, sw * .55, 25, Math.max(0, -sw) * .5); limb(sh, -sw * .6, 17, -.5);
+      g.fillStyle = '#ffd6a8'; g.lineWidth = 4; g.beginPath(); g.arc(0, -40 + bob, 14, 0, TAU); g.fill(); g.stroke();
+      g.fillStyle = '#ff4f7b'; g.beginPath(); g.arc(0, -46 + bob, 14, Math.PI, TAU); g.fill();
+    },
+    bird(g, t) {
+      const flap = Math.cos(t * TAU);
+      g.translate(0, -flap * 8);
+      g.fillStyle = '#2f8fe0'; g.beginPath(); g.moveTo(-28, 0); g.lineTo(-48, -10); g.lineTo(-46, 12); g.closePath(); g.fill();
+      g.fillStyle = '#5ab8ff'; g.beginPath(); g.ellipse(0, 0, 32, 19, 0, 0, TAU); g.fill();
+      g.beginPath(); g.arc(28, -12, 14, 0, TAU); g.fill();
+      g.fillStyle = '#ff9b2a'; g.beginPath(); g.moveTo(40, -14); g.lineTo(54, -9); g.lineTo(40, -5); g.closePath(); g.fill();
+      g.fillStyle = '#2b2433'; g.beginPath(); g.arc(31, -15, 3, 0, TAU); g.fill();
+      g.save(); g.translate(-2, -4); g.scale(1, flap || .05);
+      g.fillStyle = '#1d6fc0'; g.beginPath(); g.moveTo(-20, 0); g.quadraticCurveTo(-6, -60, 22, 0); g.closePath(); g.fill(); g.restore();
+    },
+    face(g, t) {
+      const sm = .5 - .5 * Math.cos(t * TAU);
+      g.fillStyle = '#ffd64a'; g.strokeStyle = '#e0a520'; g.lineWidth = 4; g.beginPath(); g.arc(0, 0, 52, 0, TAU); g.fill(); g.stroke();
+      g.fillStyle = `rgba(255,110,140,${.15 + sm * .45})`; g.beginPath(); g.arc(-30, 14, 9, 0, TAU); g.arc(30, 14, 9, 0, TAU); g.fill();
+      g.fillStyle = g.strokeStyle = '#3d2f4a'; g.lineWidth = 5; g.lineCap = 'round';
+      if (t > .55 && t < .7) { seg2(g, -24, -12, -12, -12); seg2(g, 12, -12, 24, -12); }
+      else { g.beginPath(); g.ellipse(-18, -12, 6, 9, 0, 0, TAU); g.ellipse(18, -12, 6, 9, 0, 0, TAU); g.fill(); }
+      g.beginPath(); g.moveTo(-22, 16); g.quadraticCurveTo(0, 16 + sm * 30, 22, 16);
+      if (sm > .45) { g.quadraticCurveTo(0, 22, -22, 16); g.fillStyle = '#c2364f'; g.fill(); }
+      g.stroke();
+    },
+    firework(g, t) {
+      g.lineCap = 'round';
+      if (t < .3) {
+        const u = t / .3, y = 85 - u * 85;
+        g.strokeStyle = 'rgba(255,170,40,.5)'; g.lineWidth = 3; seg2(g, 0, 85, 0, y + 8);
+        g.fillStyle = '#ffb02e'; g.beginPath(); g.arc(0, y, 6, 0, TAU); g.fill();
+      } else {
+        const u = (t - .3) / .7, L = 14 + u * 72;
+        for (let i = 0; i < 12; i++) {
+          const a = i / 12 * TAU, col = `hsl(${i * 30},90%,55%)`;
+          g.globalAlpha = 1 - u * .6; g.strokeStyle = col; g.lineWidth = 5;
+          seg2(g, Math.cos(a) * L * .45, Math.sin(a) * L * .45, Math.cos(a) * L, Math.sin(a) * L);
+          g.fillStyle = col; g.beginPath(); g.arc(Math.cos(a) * (L + 8), Math.sin(a) * (L + 8 + u * 10), 4, 0, TAU); g.fill();
+        }
+        g.globalAlpha = 1;
+      }
+    },
+    flower(g, t) {
+      const s = .5 - .5 * Math.cos(t * TAU);
+      g.strokeStyle = '#3cc66a'; g.lineWidth = 6; g.lineCap = 'round'; seg2(g, 0, 80, 0, 10 - s * 10);
+      g.fillStyle = '#3cc66a'; g.beginPath(); g.ellipse(12, 50, 14, 6, -.5, 0, TAU); g.fill();
+      g.save(); g.translate(0, -10 - s * 18); g.rotate(s * .6); emoji(g, '🌸', 34 + s * 56); g.restore();
+    },
+    star(g, t) {
+      g.save(); g.rotate(t * TAU / 5); starShape(g, 44 + 6 * Math.sin(t * TAU)); g.restore();
+      g.fillStyle = '#ff8ad0';
+      for (let j = 0; j < 3; j++) { const a = t * TAU + j * TAU / 3; g.beginPath(); g.arc(Math.cos(a) * 72, Math.sin(a) * 72, 5, 0, TAU); g.fill(); }
+    }
+  };
+  const SAMPLE_MSG = { fish:'お魚が すいすい およぐよ！', ball:'ボールが ぽよんと はねるよ！', walker:'人が てくてく あるくよ！', bird:'鳥が ぱたぱた とぶよ！',
+    face:'にっこり わらって、まばたきも するよ！', firework:'ひゅるる〜 ドーン！', flower:'お花が ひらいたり とじたり！', star:'星が くるくる まわるよ！' };
+  function loadSample(kind, record = true) {
+    if (record) snapshot();
+    p.clearRect(0, 0, N, N);
+    const n = state.frames, st = step();
+    p.save(); clipDisk(p);
+    for (let k = 0; k < n; k++) {
+      const a = -Math.PI / 2 - k * st; // 1コマ目は上。番号は反時計まわり（時計まわりに回すと 1→2→3 と進む）
+      p.save(); p.translate(C + RING * Math.cos(a), C + RING * Math.sin(a)); p.rotate(a + Math.PI / 2);
+      SAMPLES[kind](p, k / n); p.restore();
+    }
+    p.restore(); discDirty = true; persist();
+  }
+
+  /* ================= 円盤をつくる ================= */
+  function drawGuide(g) {
+    const n = state.frames, st = step();
+    g.save();
+    g.strokeStyle = 'rgba(150,115,80,.30)'; g.lineWidth = 2; g.setLineDash([7, 9]);
+    for (let k = 0; k < n; k++) { const a = -Math.PI / 2 - k * st + st / 2; seg2(g, C + 36 * Math.cos(a), C + 36 * Math.sin(a), C + DRAW_R * Math.cos(a), C + DRAW_R * Math.sin(a)); }
+    g.setLineDash([2, 9]); g.beginPath(); g.arc(C, C, RING, 0, TAU); g.stroke(); g.setLineDash([]);
+    g.fillStyle = 'rgba(150,115,80,.55)'; g.font = GUIDE_FONT; g.textAlign = 'center'; g.textBaseline = 'middle';
+    for (let k = 0; k < n; k++) {
+      const a = -Math.PI / 2 - k * st;
+      g.save(); g.translate(C + (DRAW_R - 20) * Math.cos(a), C + (DRAW_R - 20) * Math.sin(a)); g.rotate(a + Math.PI / 2); g.fillText(k + 1, 0, 0); g.restore();
+      g.beginPath(); g.arc(C + RING * Math.cos(a), C + RING * Math.sin(a), 3, 0, TAU); g.fill();
+    }
+    g.restore();
+  }
+  function drawRim(g) {
+    const n = state.frames, st = step();
+    const rg = g.createRadialGradient(C, C, DRAW_R, C, C, R);
+    rg.addColorStop(0, '#dcaa6a'); rg.addColorStop(.55, '#c88a48'); rg.addColorStop(1, '#9c6129');
+    g.beginPath(); g.arc(C, C, R, 0, TAU); g.arc(C, C, DRAW_R + 2, 0, TAU, true); g.fillStyle = rg; g.fill();
+    g.strokeStyle = 'rgba(90,55,20,.45)'; g.lineWidth = 2; g.beginPath(); g.arc(C, C, DRAW_R + 2, 0, TAU); g.stroke();
+    g.fillStyle = '#2a1d14';
+    for (let k = 0; k < n; k++) { // のぞき穴（スリット）はコマとコマのあいだ
+      const a = -Math.PI / 2 - k * st + st / 2;
+      g.save(); g.translate(C, C); g.rotate(a); g.beginPath();
+      if (g.roundRect) g.roundRect(DRAW_R + 7, -3.5, R - DRAW_R - 13, 7, 3.5); else g.rect(DRAW_R + 7, -3.5, R - DRAW_R - 13, 7);
+      g.fill(); g.restore();
+    }
+  }
+  const onionOn = () => state.onion && !state.playing && Math.abs(vel) < .05 && !grab;
+  function buildDisc(g, opt) {
+    g.clearRect(0, 0, N, N); g.save();
+    g.beginPath(); g.arc(C, C, R, 0, TAU); g.clip();
+    g.drawImage(tex, 0, 0);
+    if (opt.guide) drawGuide(g);
+    if (opt.onion) {
+      octx.clearRect(0, 0, N, N); octx.save(); octx.translate(C, C); octx.rotate(-step()); octx.translate(-C, -C); octx.drawImage(paint, 0, 0); octx.restore();
+      octx.globalCompositeOperation = 'source-in'; octx.fillStyle = '#3d7bff'; octx.fillRect(0, 0, N, N); octx.globalCompositeOperation = 'source-over';
+      g.globalAlpha = .24; g.drawImage(onionC, 0, 0); g.globalAlpha = 1;
+    }
+    g.drawImage(paint, 0, 0);
+    g.globalCompositeOperation = 'multiply'; g.globalAlpha = .55; g.drawImage(tex, 0, 0); // 紙にしみこんだ感じ
+    g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+    drawRim(g);
+    g.restore();
+  }
+  function drawPin(g) {
+    g.save();
+    g.fillStyle = 'rgba(0,0,0,.25)'; g.beginPath(); g.arc(C + 2, C + 4, 17, 0, TAU); g.fill();
+    const pg = g.createRadialGradient(C - 5, C - 6, 2, C, C, 17);
+    pg.addColorStop(0, '#fff6c8'); pg.addColorStop(.35, '#f2c14e'); pg.addColorStop(1, '#a8741c');
+    g.fillStyle = pg; g.beginPath(); g.arc(C, C, 16, 0, TAU); g.fill();
+    g.strokeStyle = 'rgba(110,70,10,.55)'; g.lineWidth = 2.5; g.beginPath(); g.moveTo(C - 8, C); g.lineTo(C + 8, C); g.stroke();
+    g.restore();
+  }
+  function drawPeek() {
+    const r = Math.min(122, RING * Math.sin(step() / 2) + 26);
+    ctx.save(); ctx.beginPath(); ctx.arc(C, C, R, 0, TAU); ctx.clip();
+    ctx.beginPath(); ctx.rect(0, 0, N, N); ctx.arc(C, C - RING, r, 0, TAU);
+    ctx.fillStyle = 'rgba(30,20,40,.74)'; ctx.fill('evenodd');
+    ctx.beginPath(); ctx.arc(C, C - RING, r, 0, TAU); ctx.lineWidth = 5; ctx.strokeStyle = '#ffc93c'; ctx.stroke();
+    ctx.restore();
+  }
+  let viewKey = '', sheen = null;
+  function draw() {
+    const onion = onionOn(), key = `${state.guide}|${onion}|${state.frames}`;
+    let rebuilt = false;
+    if (discDirty || key !== discKey) { buildDisc(dctx, { guide: state.guide, onion }); discDirty = false; discKey = key; rebuilt = true; }
+    // ふつうモードは本物みたいに ぶれる（モーションブラー）。アニメモードはくっきり
+    let samples = 1, spread = 0;
+    if (state.mode === 'smooth') { spread = vel * TAU / 60 * 1.3; samples = Math.min(10, Math.max(1, Math.ceil(Math.abs(spread) / .012))); }
+    const vk = `${shown}|${spread}|${state.mode}|${state.peek}`;
+    if (!rebuilt && vk === viewKey) return; // 何も変わっていなければ 描きなおさない（とまっている時の負荷をゼロに）
+    viewKey = vk;
+    ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); ctx.clearRect(0, 0, N, N);
+    for (let i = 0; i < samples; i++) {
+      ctx.globalAlpha = 1 / (i + 1);
+      ctx.save(); ctx.translate(C, C); ctx.rotate(shown - spread * i / samples); ctx.drawImage(disc, -C, -C); ctx.restore();
+    }
+    ctx.globalAlpha = 1;
+    if (!sheen) {
+      sheen = ctx.createRadialGradient(C - 140, C - 170, 10, C - 40, C - 60, R + 40);
+      sheen.addColorStop(0, 'rgba(255,255,255,.20)'); sheen.addColorStop(.45, 'rgba(255,255,255,0)'); sheen.addColorStop(1, 'rgba(70,40,10,.12)');
+    }
+    ctx.fillStyle = sheen; ctx.beginPath(); ctx.arc(C, C, R, 0, TAU); ctx.fill();
+    if (state.mode === 'anime') {
+      if (state.peek) drawPeek();
+      ctx.fillStyle = '#ff7a2e'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(C - 14, 4); ctx.lineTo(C + 14, 4); ctx.lineTo(C, 26); ctx.closePath(); ctx.fill(); ctx.stroke();
+    }
+    drawPin(ctx);
+  }
+
+  /* ================= ループ（物理） ================= */
+  let meterT = 0;
+  function frame(t) {
+    const dt = lastTime ? Math.min((t - lastTime) / 1000, .05) : 0; lastTime = t;
+    if (!grab) {
+      if (state.playing) vel += (state.dir * state.speed - vel) * (1 - Math.exp(-dt / .35)); // モーターで だんだん はやく
+      else { vel *= Math.exp(-dt * 1.3); if (Math.abs(vel) < .03) vel = 0; }              // まさつで だんだん とまる
+      angle += vel * TAU * dt;
+    }
+    angle = ((angle % TAU) + TAU) % TAU;
+    const st = step(), idx = Math.round(angle / st) % state.frames;
+    shown = state.mode === 'anime' ? idx * st : angle;
+    if (idx !== lastIdx && state.mode === 'anime') tick();
+    lastIdx = idx;
+    if (drawing && pointer && vel !== 0) { const v = toPaint(pointer.x, pointer.y); if (Math.hypot(v.x - last.x, v.y - last.y) > .5) { seg(last, v); last = v; } }
+    if (ac && whirGain) {
+      const target = state.sound ? Math.min(.08, Math.abs(vel) * .022) * (state.mode === 'anime' ? .5 : 1) : 0;
+      whirGain.gain.setTargetAtTime(target, ac.currentTime, .08);
+      whirFilter.frequency.setTargetAtTime(160 + Math.abs(vel) * 260, ac.currentTime, .1);
+    }
+    draw();
+    if (t - meterT > 150) {
+      meterT = t;
+      const v = Math.abs(vel), m = $('meter');
+      const txt = v < .05 ? 'とまってる' : state.mode === 'anime' ? `${v.toFixed(1)} 回/秒\n${Math.round(v * state.frames)} コマ/秒` : `${v.toFixed(1)} 回/秒`;
+      if (txt !== m.textContent) { m.textContent = txt; m.classList.toggle('live', v >= .05); }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  /* ================= ポインター ================= */
+  function screenAngle(e) { const s = screenPt(e.clientX, e.clientY); return Math.atan2(s.y - C, s.x - C); }
+  c.addEventListener('pointerdown', e => {
+    if (drawing || grab || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    const s = screenPt(e.clientX, e.clientY), r = Math.hypot(s.x - C, s.y - C);
+    if (r > R + 40) return;
+    e.preventDefault();
+    if (state.tool === 'hand' || r > DRAW_R) { // ふちをつかむ
+      c.setPointerCapture(e.pointerId);
+      grab = { id: e.pointerId, prev: screenAngle(e), time: performance.now(), v: 0 };
+      vel = 0; c.style.cursor = 'grabbing'; return;
+    }
+    const v = toPaint(e.clientX, e.clientY);
+    snapshot();
+    if (state.tool === 'stamp') { stampAt(v); blip(); persist(); return; }
+    c.setPointerCapture(e.pointerId);
+    drawing = true; last = v; pointer = { id: e.pointerId, x: e.clientX, y: e.clientY };
+    stroke = { dist: 0, nextDot: 0, cell: cellAt(v) };
+    seg(v, v);
+  });
+  c.addEventListener('pointermove', e => {
+    if (grab && e.pointerId === grab.id) {
+      const a = screenAngle(e); let d = a - grab.prev; d = Math.atan2(Math.sin(d), Math.cos(d));
+      const now = performance.now(), dts = Math.max(4, now - grab.time) / 1000;
+      angle += d; grab.v = grab.v * .5 + (d / TAU / dts) * .5; grab.prev = a; grab.time = now; vel = grab.v;
+      return;
+    }
+    if (!drawing) {
+      const s = screenPt(e.clientX, e.clientY);
+      c.style.cursor = (state.tool === 'hand' || Math.hypot(s.x - C, s.y - C) > DRAW_R) ? 'grab' : 'crosshair';
+      return;
+    }
+    if (e.pointerId !== pointer.id) return;
+    const list = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
+    for (const ev of (list.length ? list : [e])) { const v = toPaint(ev.clientX, ev.clientY); seg(last, v); last = v; }
+    pointer.x = e.clientX; pointer.y = e.clientY;
+  });
+  function end(e) {
+    if (grab && e.pointerId === grab.id) {
+      const idle = performance.now() - grab.time;
+      vel = idle > 90 ? 0 : Math.max(-6, Math.min(6, grab.v));
+      grab = null; c.style.cursor = 'grab';
+      if (Math.abs(vel) > .3) say('びゅん！ はじいて まわしたよ');
+      return;
+    }
+    if (!drawing || (pointer && e.pointerId !== pointer.id)) return;
+    drawing = false; last = null; pointer = null; stroke = null; persist();
+  }
+  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(t => c.addEventListener(t, end));
+  c.addEventListener('contextmenu', e => e.preventDefault());
+
+  /* ================= 道具箱 ================= */
+  function press(sel, el) { $$(sel).forEach(b => b.setAttribute('aria-pressed', String(b === el))); }
+  const markCustom = on => document.querySelector('.swatch.custom').classList.toggle('on', on);
+  function setTool(tool, quiet) {
+    state.tool = tool;
+    press('[data-tool]', document.querySelector(`[data-tool="${tool}"]`));
+    $('brushBlock').hidden = tool !== 'draw';
+    $('stampBlock').hidden = tool !== 'stamp';
+    if (!quiet) say({ stamp:`${state.stamp} をタップして おいてね`, erase:'こすって けしてね', hand:'円盤をつかんで、はじいて まわそう', draw:'円盤に じゆうに かいてね' }[tool]);
+  }
+  $$('[data-tool]').forEach(b => b.addEventListener('click', () => setTool(b.dataset.tool)));
+  $$('[data-brush]').forEach(b => b.addEventListener('click', () => {
+    state.brush = b.dataset.brush; press('[data-brush]', b); setTool('draw', true);
+    say({ pen:'ふつうのペン', crayon:'クレヨンで ざらざら', neon:'ネオンで ぴかっ', rainbow:'にじいろに かわるよ', dots:'てんてん もようだよ' }[state.brush]);
+  }));
+  $$('[data-color]').forEach(b => b.addEventListener('click', () => {
+    state.color = b.dataset.color; $('color').value = b.dataset.color; press('[data-color]', b); markCustom(false);
+    if (state.tool !== 'draw') setTool('draw', true);
+  }));
+  $('color').addEventListener('input', e => { state.color = e.target.value; press('[data-color]', null); markCustom(true); if (state.tool !== 'draw') setTool('draw', true); });
+  $('size').addEventListener('input', e => { state.size = +e.target.value; $('sizeText').textContent = state.size; });
+  $$('[data-stamp]').forEach(b => b.addEventListener('click', () => { state.stamp = b.dataset.stamp; press('[data-stamp]', b); setTool('stamp'); }));
+
+  function setMagic(on, motion) {
+    state.magic = on; if (motion) { state.motion = motion; press('[data-motion]', document.querySelector(`[data-motion="${motion}"]`)); }
+    $('magic').setAttribute('aria-pressed', String(on)); $('magicBox').classList.toggle('on', on);
+  }
+  $('magic').addEventListener('click', () => {
+    setMagic(!state.magic);
+    if (state.magic) { if (state.tool === 'hand') setTool('draw', true); blip(700, 1400, .12); }
+    say(state.magic ? `まほうペン オン！「${MOTION_NAME[state.motion]}」で うごくよ。1コマに かいてみて` : 'まほうペン オフ');
+  });
+  $$('[data-motion]').forEach(b => b.addEventListener('click', () => {
+    setMagic(true, b.dataset.motion); if (state.tool === 'hand') setTool('draw', true);
+    say(`まほう「${MOTION_NAME[state.motion]}」！ 1コマに かいて まわしてみよう`);
+  }));
+
+  function togglePlay(on = !state.playing) {
+    state.playing = on;
+    $('play').textContent = on ? '⏸ とめる' : '▶ まわす';
+    say(on ? (state.mode === 'anime' ? 'カタカタ… 絵が 動いて見えるかな？' : 'ぐるぐる！ 何が 見えるかな？') : 'ブレーキ！ だんだん とまるよ');
+  }
+  $('play').addEventListener('click', () => togglePlay());
+  $('reverse').addEventListener('click', () => {
+    state.dir *= -1; $('reverse').setAttribute('aria-pressed', String(state.dir < 0));
+    say(state.dir < 0 ? 'ぎゃくまわし！ アニメも ぎゃく再生になるよ' : 'もとの向きに もどしたよ');
+  });
+  $('sound').addEventListener('click', () => {
+    state.sound = !state.sound; $('sound').setAttribute('aria-pressed', String(state.sound)); $('sound').textContent = state.sound ? '🔊' : '🔇';
+    if (state.sound) ensureAudio();
+  });
+  function updateSpeed() {
+    $('speedText').textContent = state.mode === 'anime' ? `${state.speed.toFixed(1)} 回/秒 ・ ${Math.round(state.speed * state.frames)}コマ/秒` : `${state.speed.toFixed(1)} 回/秒`;
+  }
+  $('speed').addEventListener('input', e => { state.speed = +e.target.value; updateSpeed(); });
+  function setMode(mode) { state.mode = mode; press('[data-mode]', document.querySelector(`[data-mode="${mode}"]`)); updateSpeed(); }
+  $$('[data-mode]').forEach(b => b.addEventListener('click', () => {
+    setMode(b.dataset.mode);
+    say(b.dataset.mode === 'anime' ? 'アニメモード！ 1コマずつ カタカタ 進むよ' : 'ふつうモード！ なめらかに まわるよ');
+  }));
+  function setFrames(n) { state.frames = n; $('frames').value = String(n); updateSpeed(); discDirty = true; }
+  $('frames').addEventListener('change', e => { setFrames(+e.target.value); persist(); say(`${state.frames}コマに なったよ。おてほんを おすと ${state.frames}コマで 作りなおすよ`); });
+  $('guide').addEventListener('change', e => { state.guide = e.target.checked; });
+  $('onion').addEventListener('change', e => { state.onion = e.target.checked; });
+  $('peek').addEventListener('change', e => { state.peek = e.target.checked; });
+
+  $$('[data-sample]').forEach(b => b.addEventListener('click', () => {
+    loadSample(b.dataset.sample); setMode('anime'); togglePlay(true); blip(600, 900);
+    say(SAMPLE_MSG[b.dataset.sample] + ' はやさも かえてみてね');
+  }));
+  $('undo').addEventListener('click', undo);
+  $('clear').addEventListener('click', () => { snapshot(); p.clearRect(0, 0, N, N); discDirty = true; persist(); say('まっしろ！ 1番から じゅんに かいてみよう（「もどす」で もとにもどせるよ）'); });
+
+  /* タブ */
+  const tabs = $$('[role="tab"]');
+  function selectTab(tab, focus) {
+    tabs.forEach(t => { const on = t === tab; t.setAttribute('aria-selected', String(on)); t.tabIndex = on ? 0 : -1; $(t.getAttribute('aria-controls')).hidden = !on; });
+    if (focus) tab.focus();
+    if (tab.id === 't-save') renderGallery();
+  }
+  tabs.forEach((t, i) => {
+    t.addEventListener('click', () => selectTab(t));
+    t.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); selectTab(tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length], true); }
+      else if (e.key === 'Home' || e.key === 'End') { e.preventDefault(); selectTab(tabs[e.key === 'Home' ? 0 : tabs.length - 1], true); }
+    });
+  });
+
+  /* ================= おだいサイコロ ================= */
+  const IDEAS = [
+    { t:'たまごが われて ひよこが でてくる', h:'1コマずつ ひびを ふやしていこう' },
+    { t:'かおが だんだん にっこり わらう', h:'口の はしを すこしずつ あげてね' },
+    { t:'ロケットが うちゅうへ とびだす', h:'ロケットを 1こ かくだけで いいよ', m:'fly' },
+    { t:'はなびが ドーン！と ひらく', h:'ちいさな はなびを 1こ かいてね', m:'grow' },
+    { t:'カエルが ぴょんぴょん はねる', h:'カエルを 1ぴき かいてね', m:'jump' },
+    { t:'ハートが ドキドキ する', h:'ハートを 1こ かくだけ！', m:'pulse' },
+    { t:'かざぐるまが くるくる まわる', h:'はねを 4まい かいてね', m:'spin' },
+    { t:'おばけが ゆらゆら ただよう', h:'おばけを 1ぴき かいてね', m:'sway' },
+    { t:'ふうせんが ふくらんで… パン！', h:'さいごの コマで われちゃおう' },
+    { t:'ゆきだるまが とけていく', h:'まほう「ちいさく」も つかえるよ', m:'fade' },
+    { t:'ちょうちょが はばたく', h:'はねを ひらいたり とじたり' },
+    { t:'おつきさまが みちたり かけたり', h:'まんまる → はんぶん → ほそい' },
+    { t:'たねから めがでて 花が さく', h:'1コマずつ すこしずつ のばそう' },
+    { t:'あめが ざあざあ ふってくる', h:'しずくを 1コマずつ まんなかへ ちかづけよう' },
+    { t:'いぬが しっぽを ふる', h:'しっぽだけ むきを かえよう' },
+    { t:'かいじゅうが 火を ふく', h:'火を だんだん ながく しよう' },
+    { t:'うちゅうじんが てを ふる', h:'てだけ うごかすと かんたん' },
+    { t:'おにぎりを ぱくぱく たべる', h:'1コマずつ かじった あとを ふやそう' },
+    { t:'じぶんの かおが ウインクする', h:'かためだけ とじよう' },
+    { t:'さかなが えさを ぱくっ', h:'えさと さかなを ちかづけていこう' },
+    { t:'ほしが キラッと ひかる', h:'ほしを 1こ かいてね', m:'pulse' },
+    { t:'ひこうきが くるっと 1かいてん', h:'ひこうきを 1き かいてね', m:'spin' },
+    { t:'きょうりゅうが のっしのっし あるく', h:'あしを まえ・うしろと うごかそう' },
+    { t:'ねこが のびーーっと のびる', h:'からだを すこしずつ ながく' }
+  ];
+  let idea = IDEAS[0];
+  function showIdea(it) {
+    idea = it; $('ideaText').textContent = it.t; $('ideaHint').textContent = it.h || 'すきなように かいてみよう！';
+    $('ideaMagic').hidden = !it.m;
+    if (it.m) $('ideaMagic').textContent = `🪄 まほう「${MOTION_NAME[it.m]}」で かく`;
+  }
+  $('dice').addEventListener('click', () => {
+    const pick = () => IDEAS[Math.floor(Math.random() * IDEAS.length)];
+    if (reduceMotion) { showIdea(pick()); return; }
+    let n = 0; $('dice').disabled = true;
+    const iv = setInterval(() => {
+      let it; do { it = pick(); } while (it === idea);
+      $('ideaText').textContent = it.t; blip(300 + n * 60, 320 + n * 60, .03, .08);
+      if (++n >= 9) { clearInterval(iv); showIdea(it); $('dice').disabled = false; blip(660, 1320, .15); }
+    }, 70);
+  });
+  $('ideaMagic').addEventListener('click', () => {
+    if (!idea.m) return;
+    setMagic(true, idea.m); setTool('draw', true); setMode('anime'); selectTab($('t-draw'));
+    say(`まほう「${MOTION_NAME[idea.m]}」じゅんび OK！ 上の 1番に かいてから まわしてね`);
+  });
+
+  /* ================= 書き出し（PNG・GIF） ================= */
+  let downloads = null;
+  (async () => { try { if (window.claude && window.claude.use) downloads = await window.claude.use('downloads'); } catch (e) {} })();
+  async function offer(name, blob) {
+    if (downloads) {
+      try { await downloads.save({ filename: name, data: blob }); say('ほぞんしたよ！'); return; }
+      catch (e) { if (e && e.code === 'declined') { say('ほぞんを やめたよ'); return; } if (e && e.code === 'rate_limited') { say('ちょっと まってから もういちど おしてね'); return; } }
+    }
+    const url = URL.createObjectURL(blob), a = document.createElement('a');
+    a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+  }
+  let exportURLs = [];
+  function openExport(items, title) {
+    exportURLs.forEach(u => URL.revokeObjectURL(u)); exportURLs = [];
+    const grid = $('exGrid'); grid.textContent = '';
+    for (const it of items) {
+      const url = URL.createObjectURL(it.blob); exportURLs.push(url);
+      const fig = document.createElement('figure');
+      const img = new Image(); img.src = url; img.alt = it.cap;
+      const cap = document.createElement('figcaption'); cap.textContent = it.cap;
+      const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'btn primary'; btn.textContent = '⬇ ほぞん';
+      btn.addEventListener('click', () => offer(it.name, it.blob));
+      fig.append(img, cap, btn); grid.append(fig);
+    }
+    $('exTitle').textContent = title;
+    const d = $('exportDialog'); if (d.showModal) d.showModal(); else d.setAttribute('open', '');
+  }
+  function cleanDisc() { const k = mk(); buildDisc(k.getContext('2d'), { guide: false, onion: false }); return k; }
+  function renderFrames(kind) {
+    const clean = cleanDisc(), n = state.frames, st = step(), size = kind === 'disc' ? 360 : 300;
+    const out = document.createElement('canvas'); out.width = out.height = size;
+    const g = out.getContext('2d', { willReadFrequently: true }), frames = [];
+    const rr = Math.min(130, RING * Math.sin(st / 2) + 30);
+    for (let k = 0; k < n; k++) {
+      const rot = state.dir * k * st;
+      g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, size, size); g.save();
+      if (kind === 'disc') {
+        g.scale(size / N, size / N); g.translate(C, C); g.rotate(rot); g.drawImage(clean, -C, -C);
+        g.setTransform(size / N, 0, 0, size / N, 0, 0); drawPin(g);
+      } else {
+        g.beginPath(); g.arc(size / 2, size / 2, size / 2 - 1, 0, TAU); g.clip();
+        g.fillStyle = '#fbf8f2'; g.fillRect(0, 0, size, size);
+        g.scale(size / (2 * rr), size / (2 * rr)); g.translate(rr - C, rr - (C - RING));
+        g.translate(C, C); g.rotate(rot); g.translate(-C, -C); g.drawImage(clean, 0, 0);
+      }
+      g.restore();
+      frames.push(g.getImageData(0, 0, size, size).data);
+    }
+    return { frames, size };
+  }
+  // 小さな GIF エンコーダー（人気色パレット＋LZW）。出力は 型付き配列に じかに書く
+  function byteWriter() {
+    let buf = new Uint8Array(1 << 16), n = 0;
+    const room = m => { if (n + m > buf.length) { const nb = new Uint8Array(Math.max(buf.length * 2, n + m)); nb.set(buf.subarray(0, n)); buf = nb; } };
+    return {
+      B(x) { room(1); buf[n++] = x; },
+      W(x) { room(2); buf[n++] = x & 255; buf[n++] = (x >> 8) & 255; },
+      S(s) { for (const ch of s) this.B(ch.charCodeAt(0)); },
+      bytes(a, len) { room(len); buf.set(a.subarray(0, len), n); n += len; },
+      done: () => buf.subarray(0, n)
+    };
+  }
+  function encodeGIF({ frames, size }, delay) {
+    const cnt = new Uint32Array(32768), sr = new Float64Array(32768), sg = new Float64Array(32768), sb = new Float64Array(32768);
+    for (const d of frames) for (let i = 0; i < d.length; i += 4) {
+      if (d[i + 3] < 128) continue;
+      const k = ((d[i] >> 3) << 10) | ((d[i + 1] >> 3) << 5) | (d[i + 2] >> 3);
+      cnt[k]++; sr[k] += d[i]; sg[k] += d[i + 1]; sb[k] += d[i + 2];
+    }
+    const keys = []; for (let k = 0; k < 32768; k++) if (cnt[k]) keys.push(k);
+    keys.sort((a, b) => cnt[b] - cnt[a]);
+    const pal = keys.slice(0, 255).map(k => [sr[k] / cnt[k], sg[k] / cnt[k], sb[k] / cnt[k]]);
+    const TR = 255, palBytes = new Uint8Array(768);
+    pal.forEach((col, i) => { palBytes[i * 3] = col[0]; palBytes[i * 3 + 1] = col[1]; palBytes[i * 3 + 2] = col[2]; });
+    const lut = new Int16Array(32768).fill(-1);
+    const nearest = k => {
+      const r = ((k >> 10) & 31) * 8 + 4, gg = ((k >> 5) & 31) * 8 + 4, b = (k & 31) * 8 + 4;
+      let best = 0, bd = Infinity;
+      for (let i = 0; i < pal.length; i++) { const dr = pal[i][0] - r, dg = pal[i][1] - gg, db = pal[i][2] - b, dd = dr * dr * 2 + dg * dg * 4 + db * db * 3; if (dd < bd) { bd = dd; best = i; } }
+      return best;
+    };
+    const w = byteWriter();
+    w.S('GIF89a'); w.W(size); w.W(size); w.B(0xF7); w.B(0); w.B(0);
+    w.bytes(palBytes, 768);
+    w.B(0x21); w.B(0xFF); w.B(11); w.S('NETSCAPE2.0'); w.B(3); w.B(1); w.W(0); w.B(0);
+    const px = new Uint8Array(size * size);
+    for (const d of frames) {
+      for (let i = 0, j = 0; j < px.length; i += 4, j++) {
+        if (d[i + 3] < 128) { px[j] = TR; continue; }
+        const k = ((d[i] >> 3) << 10) | ((d[i + 1] >> 3) << 5) | (d[i + 2] >> 3);
+        let v = lut[k]; if (v < 0) v = lut[k] = nearest(k); px[j] = v;
+      }
+      w.B(0x21); w.B(0xF9); w.B(4); w.B(0x09); w.W(delay); w.B(TR); w.B(0);
+      w.B(0x2C); w.W(0); w.W(0); w.W(size); w.W(size); w.B(0);
+      lzw(px, 8, w);
+    }
+    w.B(0x3B);
+    return new Blob([w.done()], { type: 'image/gif' });
+  }
+  // 辞書は「前の符号×256＋次の色」で引く表。世代番号で 一瞬でリセットできる
+  let lzwCode = null, lzwGen = null, gen = 0;
+  function lzw(px, minCode, w) {
+    if (!lzwCode) { lzwCode = new Int16Array(4096 * 256); lzwGen = new Uint32Array(4096 * 256); }
+    w.B(minCode);
+    const clear = 1 << minCode, eoi = clear + 1, block = new Uint8Array(255);
+    let size = minCode + 1, next = eoi + 1, cur = 0, bits = 0, bl = 0;
+    const flush = () => { if (bl) { w.B(bl); w.bytes(block, bl); bl = 0; } };
+    const emit = code => {
+      cur |= code << bits; bits += size;
+      while (bits >= 8) { block[bl++] = cur & 255; if (bl === 255) flush(); cur >>>= 8; bits -= 8; }
+    };
+    gen++; emit(clear);
+    let prefix = px[0];
+    for (let i = 1; i < px.length; i++) {
+      const k = px[i], key = (prefix << 8) | k;
+      if (lzwGen[key] === gen) { prefix = lzwCode[key]; continue; }
+      emit(prefix);
+      if (next < 4096) { lzwCode[key] = next++; lzwGen[key] = gen; if (next > (1 << size) && size < 12) size++; }
+      else { emit(clear); gen++; next = eoi + 1; size = minCode + 1; }
+      prefix = k;
+    }
+    emit(prefix); emit(eoi);
+    if (bits > 0) { block[bl++] = cur & 255; if (bl === 255) flush(); }
+    flush(); w.B(0);
+  }
+  $('gifBtn').addEventListener('click', async () => {
+    const btn = $('gifBtn'); btn.disabled = true; say('GIFアニメを つくってるよ…');
+    await new Promise(r => setTimeout(r, 40));
+    try {
+      const fps = Math.max(3, Math.min(25, state.speed * state.frames)), delay = Math.max(4, Math.round(100 / fps));
+      const a = encodeGIF(renderFrames('disc'), delay), b = encodeGIF(renderFrames('peek'), delay);
+      openExport([{ blob: b, name: 'kurukuru-anime.gif', cap: '🎞️ アニメ（1コマ ズーム）' }, { blob: a, name: 'kurukuru-disc.gif', cap: '🌀 円盤ぜんぶ' }], 'GIFアニメ できあがり！');
+      say('できた！ おうちの人にも 見せてあげよう'); blip(660, 1320, .2);
+    } catch (err) { console.error(err); say('うまく つくれなかったよ。もういちど おしてみてね'); }
+    finally { btn.disabled = false; }
+  });
+  $('pngBtn').addEventListener('click', () => {
+    const k = cleanDisc(), g = k.getContext('2d'); drawPin(g);
+    k.toBlob(blob => { if (blob) openExport([{ blob, name: 'kurukuru-disc.png', cap: '📷 円盤の画像' }], '円盤の画像 できあがり！'); }, 'image/png');
+  });
+  $('exportDialog').addEventListener('close', () => { exportURLs.forEach(u => URL.revokeObjectURL(u)); exportURLs = []; });
+
+  /* ================= わたしの作品 ================= */
+  const readGallery = () => { try { return JSON.parse(localStorage.getItem(GALLERY) || '[]'); } catch (e) { return []; } };
+  const writeGallery = list => { try { localStorage.setItem(GALLERY, JSON.stringify(list)); return true; } catch (e) { return false; } };
+  function renderGallery() {
+    const grid = $('gallery'), list = readGallery(); grid.textContent = '';
+    if (!list.length) { const pEl = document.createElement('p'); pEl.className = 'hint'; pEl.style.gridColumn = '1/-1'; pEl.textContent = 'まだ ないよ。「しまう」を おすと ここに ならぶよ'; grid.append(pEl); return; }
+    for (const item of list) {
+      const wrap = document.createElement('div'); wrap.className = 'gitem';
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'gthumb'; b.setAttribute('aria-label', `${item.date} の作品を ひらく`);
+      const img = new Image(); img.src = item.png; img.alt = ''; b.append(img);
+      b.addEventListener('click', async () => { snapshot(); if (item.frames) setFrames(item.frames); await loadPaintURL(item.png); say(`${item.date} の作品を ひらいたよ`); });
+      const x = document.createElement('button'); x.type = 'button'; x.className = 'gdel'; x.textContent = '×'; x.setAttribute('aria-label', 'この作品を けす');
+      x.addEventListener('click', () => {
+        if (x.dataset.armed) { writeGallery(readGallery().filter(i => i.id !== item.id)); renderGallery(); say('作品を けしたよ'); return; }
+        x.dataset.armed = '1'; x.textContent = 'けす?';
+        setTimeout(() => { if (x.isConnected) { delete x.dataset.armed; x.textContent = '×'; } }, 2500);
+      });
+      wrap.append(b, x); grid.append(wrap);
+    }
+  }
+  $('keep').addEventListener('click', () => {
+    const list = readGallery();
+    if (list.length >= 8) { say('いっぱいだよ。ふるい作品を ×で けしてから しまってね'); return; }
+    const d = new Date();
+    list.unshift({ id: Date.now(), date: `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`, png: paint.toDataURL('image/png'), frames: state.frames });
+    if (writeGallery(list)) { say('しまったよ！'); blip(500, 1000); } else say('しまえなかったよ（このブラウザでは ほぞんが つかえないみたい）');
+    renderGallery();
+  });
+
+  /* ================= キーボード ================= */
+  addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); undo(); return; }
+    const tag = document.activeElement && document.activeElement.tagName;
+    if (e.code === 'Space' && !['INPUT', 'SELECT', 'BUTTON', 'TEXTAREA', 'A'].includes(tag) && !$('exportDialog').open) { e.preventDefault(); togglePlay(); }
+  });
+
+  /* ================= スタート ================= */
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(STORE) || 'null'); } catch (e) {}
+  if (saved && saved.png) { if (saved.frames) setFrames(saved.frames); loadPaintURL(saved.png); say('前に かいた絵を よみこんだよ。つづきから かこう！'); }
+  else loadSample('fish', false);
+  setMode('anime'); syncUndo();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { discDirty = true; });
+  showIdea(IDEAS[Math.floor(Math.random() * IDEAS.length)]);
+  requestAnimationFrame(frame);
+})();
+</script>
+</body></html>
